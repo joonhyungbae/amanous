@@ -45,6 +45,7 @@ function App() {
       <header className="header">
         <h1>AMANOUS</h1>
         <p className="subtitle">Piano pieces only a Disklavier can play — composed by algorithm.</p>
+        <p className="subtitle">Audio is a software render of the generated MIDI (piano soundfont), not a recording of the instrument.</p>
       </header>
 
       {audioError && (

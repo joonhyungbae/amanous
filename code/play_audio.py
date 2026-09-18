@@ -13,7 +13,7 @@ from pathlib import Path
 
 from config import AUDIO_DIR  # Salamander Grand Piano HQ renders; override with AMANOUS_AUDIO_DIR
 
-# Aligned with paper Appendix F Excerpt titles/descriptions (section order)
+# Aligned with the paper's Supplementary Materials appendix (Excerpts 1-4, section order)
 DESCRIPTIONS = {
     "canonical_abaababa": {
         "title": "Canonical ABAABABA Validation Composition",
@@ -25,16 +25,16 @@ DESCRIPTIONS = {
     "beyond_human_demo": {
         "title": "Beyond-Human-Density",
         "style": "Superhuman piano textures",
-        "description": "Disklavier render. 40-note chords, 30 Hz multi-key trill, 6-octave arpeggio (Excerpt 1).",
+        "description": "40-note chords, 30 Hz multi-key trill, 6-octave arpeggio (Excerpt 1).",
         "duration": "34s",
-        "highlight": "Peak density 138 notes/s, 4 voices"
+        "highlight": "Three sections, each past a different physical limit of human performance"
     },
     "minimalist_phase": {
         "title": "Phase Music — Minimalist Study",
         "style": "Phase-shift · pentatonic",
         "description": "Reich-inspired phase-shift; pentatonic set, 1:1.01 tempo drift (Excerpt 2).",
         "duration": "80s",
-        "highlight": "High tonal stability (TS=0.37), regular rhythm"
+        "highlight": "Deterministic scaffolding with minimal stochastic variation"
     },
     "convergence_point": {
         "title": "Convergence Point (3:4 Canon)",
