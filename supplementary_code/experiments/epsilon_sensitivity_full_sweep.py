@@ -149,51 +149,26 @@ def plot_epsilon_sensitivity(rows: list, out_dir: str) -> None:
     mean_gap_34 = [r["mean_gap_3_4_s"] for r in rows]
     mean_gap_epi = [r["mean_gap_epi_s"] for r in rows]
 
-    fig, axes = plt.subplots(2, 2, figsize=(10, 8))
-
-    # (1) ε vs event count
-    ax = axes[0, 0]
-    ax.plot(eps, c_34, "o-", color="C0", label="3:4 (Rational)", markersize=4)
-    ax.plot(eps, c_epi, "s-", color="C1", label=r"$e:\pi$ (Irrational)", markersize=4)
-    ax.set_xlabel("$\\epsilon$ (ms)")
-    ax.set_ylabel("Distribution-switching event count")
-    ax.set_title("Event count vs $\\epsilon$")
-    ax.legend()
-    ax.grid(True, alpha=0.3)
-
-    # (2) ε vs event rate (per second)
-    ax = axes[0, 1]
-    ax.plot(eps, rate_34, "o-", color="C0", label="3:4 (Rational)", markersize=4)
-    ax.plot(eps, rate_epi, "s-", color="C1", label=r"$e:\pi$ (Irrational)", markersize=4)
-    ax.set_xlabel("$\\epsilon$ (ms)")
-    ax.set_ylabel("Events per second")
-    ax.set_title("Event rate vs $\\epsilon$")
-    ax.legend()
-    ax.grid(True, alpha=0.3)
-
-    # (3) ε vs mean inter-event interval (s)
-    ax = axes[1, 0]
-    ax.plot(eps, mean_gap_34, "o-", color="C0", label="3:4 (Rational)", markersize=4)
-    ax.plot(eps, mean_gap_epi, "s-", color="C1", label=r"$e:\pi$ (Irrational)", markersize=4)
-    ax.set_xlabel("$\\epsilon$ (ms)")
-    ax.set_ylabel("Mean inter-event interval (s)")
-    ax.set_title("Mean gap between events vs $\\epsilon$")
-    ax.legend()
-    ax.grid(True, alpha=0.3)
-
-    # (4) Correlation: ε vs count — Rational flat, Irrational monotonic
-    ax = axes[1, 1]
-    ax.plot(eps, c_34, "o-", color="C0", label="3:4 (Rational)", markersize=5)
-    ax.plot(eps, c_epi, "s-", color="C1", label=r"$e:\pi$ (Irrational)", markersize=5)
-    ax.set_xlabel("$\\epsilon$ (ms)")
-    ax.set_ylabel("Event count")
-    ax.set_title("$\\epsilon$ as compositional parameter:\nRational stable, Irrational monotonic")
-    ax.legend()
-    ax.grid(True, alpha=0.3)
+    # Three panels at print-legible type size (the former fourth panel repeated panel 1).
+    plt.rcParams.update({"font.size": 15, "axes.titlesize": 15, "legend.fontsize": 12})
+    fig, axes = plt.subplots(1, 3, figsize=(15, 4.6))
+    panels = [
+        (c_34, c_epi, "Event count", "Event count"),
+        (rate_34, rate_epi, "Events per second", "Event rate"),
+        (mean_gap_34, mean_gap_epi, "Mean inter-event interval (s)", "Mean inter-event interval"),
+    ]
+    for ax, (y_34, y_epi, ylabel, title) in zip(axes, panels):
+        ax.plot(eps, y_34, "o-", color="C0", label="3:4 (rational)", markersize=5)
+        ax.plot(eps, y_epi, "s--", color="C1", label=r"$e:\pi$ (irrational)", markersize=5)
+        ax.set_xlabel("$\\epsilon$ (ms)")
+        ax.set_ylabel(ylabel)
+        ax.set_title(title)
+        ax.legend()
+        ax.grid(True, alpha=0.3)
 
     plt.tight_layout()
     fig_path = os.path.join(out_dir, "epsilon_sensitivity_cp_full_sweep.png")
-    plt.savefig(fig_path, dpi=150, bbox_inches="tight")
+    plt.savefig(fig_path, dpi=300, bbox_inches="tight")
     plt.close()
     print(f"Saved: {fig_path}")
 
