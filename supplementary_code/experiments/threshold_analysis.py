@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
 """
+RETIRED -- kept for the record only; not a source for the published paper.
+
+An earlier draft claimed a sharp coherence-saturation threshold and a
+distribution-independence experiment. Both were withdrawn during review. The
+paper's density result comes from code/discriminability_analysis.py. See the
+"Reproducing the paper" section of the README.
+"""
+"""
 Aggregate Density vs Single-Voice Coherence: Linear vs Piecewise Regression.
 
 - Loads density_sweep_results.csv (columns: Aggregate Density, Single-Voice Coherence).

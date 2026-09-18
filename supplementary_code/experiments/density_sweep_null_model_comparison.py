@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
 """
+RETIRED -- kept for the record only; not a source for the published paper.
+
+An earlier draft claimed a sharp coherence-saturation threshold and a
+distribution-independence experiment. Both were withdrawn during review. The
+paper's density result comes from code/discriminability_analysis.py. See the
+"Reproducing the paper" section of the README.
+"""
+"""
 Null Model comparison: Figure 3 (Density Sweep) control group.
 
 - Density: 10–200 notes/s (default 14 bins: 10, 15, 20, 25, 28, 30, 40, 50, 60, 80, 100, 120, 150, 200).
