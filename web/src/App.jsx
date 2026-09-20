@@ -201,13 +201,13 @@ export default function App() {
     setCurrent(id)
     setLoading(true)
     audio.src = `${BASE}audio/${id}.mp3`
-    audio.currentTime = 0
-    const begin = () => {
-      if (at > 0) audio.currentTime = at
-      audio.play().catch(() => setLoading(false))
+    // play() is called straight away so that it stays inside the user's click. With
+    // preload="none" nothing loads until then, so a start position is applied once the
+    // metadata arrives.
+    if (at > 0) {
+      audio.addEventListener('loadedmetadata', () => { audio.currentTime = at }, { once: true })
     }
-    if (at > 0) audio.addEventListener('loadedmetadata', begin, { once: true })
-    else begin()
+    audio.play().catch(() => setLoading(false))
   }, [])
 
   const toggle = useCallback(
@@ -320,13 +320,13 @@ export default function App() {
       <div className={`bar ${current ? 'bar--open' : ''}`} role="region" aria-label="Player">
         <div className="bar-inner">
           <div className="bar-buttons">
-            <button type="button" onClick={() => step(-1)} disabled={index <= 0} aria-label="Previous track">
+            <button type="button" onClick={() => step(-1)} onMouseUp={(e) => e.currentTarget.blur()} disabled={index <= 0} aria-label="Previous track">
               <SkipIcon back />
             </button>
             <button type="button" className="bar-play" onClick={() => toggle(current)} aria-label={playing ? 'Pause' : 'Play'}>
               {loading ? <span className="spinner" /> : playing ? <PauseIcon /> : <PlayIcon />}
             </button>
-            <button type="button" onClick={() => step(1)} disabled={index < 0 || index >= ORDER.length - 1} aria-label="Next track">
+            <button type="button" onClick={() => step(1)} onMouseUp={(e) => e.currentTarget.blur()} disabled={index < 0 || index >= ORDER.length - 1} aria-label="Next track">
               <SkipIcon />
             </button>
           </div>
