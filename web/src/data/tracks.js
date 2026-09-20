@@ -9,6 +9,9 @@ export const TRACK_ORDER = [
   'beyond_human_demo',    // Excerpt 1 (Section 4.1.6)
   'minimalist_phase',    // Excerpt 2 (Section 4.1.6)
   'convergence_point',   // Excerpt 4 (Section 4.4)
+  // Work after the paper (code/amanous_v2.py). Not part of the published article.
+  'v2_study_1',
+  'v2_study_2',
 ];
 
 // Titles aligned with the paper's Supplementary Materials appendix (Excerpts 1-4)
@@ -40,5 +43,19 @@ export const TRACKS = {
     description: 'Pre-CP sparse/melodic and post-CP dense/textural switch at t = 15 s (paper Excerpt 4).',
     duration: '30s',
     highlight: 'Density and tonality shift at convergence',
+  },
+  v2_study_1: {
+    title: 'After the paper: Study 1 (Canon 3:4)',
+    style: 'Amanous v2 · motivic tempo canon and swelling clouds',
+    description: 'Not part of the published article. One motif stated by two voices at 3:4, transformed from statement to statement, against stochastic clouds that walk inside the harmony. C lydian, form ABAABABA, sustain pedal changed with the chords.',
+    duration: '74s',
+    highlight: 'Same four layers; Layer 3 now has melodic memory, harmony, rests and dynamic arcs',
+  },
+  v2_study_2: {
+    title: 'After the paper: Study 2 (Canon 4:5:6)',
+    style: 'Amanous v2 · three-voice tempo canon',
+    description: 'Not part of the published article. Three voices at 4:5:6 in D dorian over thirteen shorter sections, with sections differing in derivation depth.',
+    duration: '79s',
+    highlight: 'Voices converge at every section boundary',
   },
 };

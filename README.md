@@ -81,6 +81,18 @@ Some statistics are reported from saved outputs under `supplementary_code/data/c
 | Pitch–velocity coupling | `pitch_velocity_coupling_results.csv` |
 | Constraint-application efficiency | `chained_reactive_constraint_results.csv` |
 
+### After the paper: Amanous v2
+
+`code/amanous_v2.py` is development that postdates the article and is not cited by it. The paper's presets in `amanous_composer.py` are untouched, so every published number still reproduces. v2 keeps the four layers and Layer 4, and changes Layer 3, where the published generator samples every note independently. It adds a motif built by a constrained random walk and stated by all voices at their tempo ratios (a tempo canon in the strict sense), motif transformation, chord progressions, phrase rests, velocity arcs, sustain pedal, sections that differ in derivation depth, and a key-reset stage that moves an offending note to a free octave before it suppresses it.
+
+```bash
+cd code
+python amanous_v2.py --preset study_1      # writes compositions/v2_study_1.mid and the event list
+python v2_quality_report.py                # surface statistics, v1 canonical against v2
+```
+
+On the canonical piece against Study 1, the share of stepwise melodic intervals rises from 6% to 58%, leaps beyond an octave fall from 59% to 2%, recurring four-interval patterns rise from 0.1% to 99%, and the piece gains phrase rests, all with zero key-reset violations. These are descriptions of the note stream, not perceptual measures.
+
 **Retired material.** An earlier draft claimed a sharp coherence-saturation threshold and a distribution-independence experiment. Both were withdrawn during review and are not results of the paper. `code/breakpoint_bootstrap.py` and `code/recalculate_statistics.py` are tombstones, and `supplementary_code/experiments/density_sweep_null_model_comparison.py` (with its `--distribution-independence` mode and figure), `threshold_analysis.py`, `supplementary_code/rq3_coherence_thresholds/validate_breakpoints.py`, and `supplementary_code/data/csv/psychoacoustic_thresholds.csv` are kept for the record only. `code/canonical_symbol_only_control.*` is the control with recursion-depth modulation disabled (3,383 events after Layer 4), used by the ablations; it is not Excerpt 3.
 
 ### Paths and configuration

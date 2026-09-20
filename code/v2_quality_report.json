@@ -1,0 +1,41 @@
+{
+  "v1_canonical": {
+    "stepwise_share": 0.06402388455796981,
+    "leap_share_over_octave": 0.5906452147951567,
+    "interval_4gram_repetition": 0.0009961813049975095,
+    "silences_over_150ms": 0,
+    "velocity_range_used": [
+      50,
+      112
+    ],
+    "velocity_sd": 12.320986364173818,
+    "key_reset_violations": 0,
+    "n_events": 6031
+  },
+  "v2_study_1": {
+    "stepwise_share": 0.5797940797940798,
+    "leap_share_over_octave": 0.02059202059202059,
+    "interval_4gram_repetition": 0.9935400516795866,
+    "silences_over_150ms": 30,
+    "velocity_range_used": [
+      38,
+      116
+    ],
+    "velocity_sd": 13.328999749025357,
+    "key_reset_violations": 0,
+    "n_events": 4689
+  },
+  "v2_study_2": {
+    "stepwise_share": 0.724179829890644,
+    "leap_share_over_octave": 0.0,
+    "interval_4gram_repetition": 0.9943089430894309,
+    "silences_over_150ms": 14,
+    "velocity_range_used": [
+      42,
+      122
+    ],
+    "velocity_sd": 15.213986642591825,
+    "key_reset_violations": 0,
+    "n_events": 4465
+  }
+}

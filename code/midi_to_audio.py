@@ -145,7 +145,8 @@ def wav_to_mp3(wav_path: str, output_path: str = None,
         return str(wav_path)
 
 def convert_midi(midi_path: str, output_dir: str = None,
-                 format: str = "wav", soundfont: str = None) -> str:
+                 format: str = "wav", soundfont: str = None,
+                 gain: float = 1.0) -> str:
     """
     Convert MIDI file to audio (main entry).
 
@@ -176,7 +177,7 @@ def convert_midi(midi_path: str, output_dir: str = None,
     wav_path = output_dir / f"{midi_path.stem}.wav"
     
     # MIDI → WAV
-    wav_file = midi_to_wav(midi_path, wav_path, soundfont)
+    wav_file = midi_to_wav(midi_path, wav_path, soundfont, gain=gain)
     
     # WAV → MP3 if requested
     if format.lower() == 'mp3':
@@ -251,6 +252,8 @@ Examples:
     parser.add_argument('--format', '-f', type=str, default='wav',
                        choices=['wav', 'mp3'], help='Output format')
     parser.add_argument('--soundfont', '-s', type=str, help='Soundfont path')
+    parser.add_argument('--gain', '-g', type=float, default=1.0,
+                        help='FluidSynth gain. Dense or pedalled pieces clip at 1.0; try 0.35 and normalise afterwards')
     parser.add_argument('--list-sf', action='store_true', help='List available soundfonts')
     
     args = parser.parse_args()
@@ -268,7 +271,7 @@ Examples:
         results = batch_convert(args.batch, output_dir, args.format, args.soundfont)
         print(f"\nDone: {len(results)} file(s) converted")
     elif args.input:
-        result = convert_midi(args.input, output_dir, args.format, args.soundfont)
+        result = convert_midi(args.input, output_dir, args.format, args.soundfont, gain=args.gain)
         print(f"\nResult: {result}")
     else:
         parser.print_help()
