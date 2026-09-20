@@ -29,7 +29,7 @@ All results are computational (MIDI and statistical). Nothing here was measured 
 | `compositions/` | Example composition data (event CSVs; MIDI/WAV when generated) |
 | `audio_hq/` | High-quality WAV renders of selected compositions |
 | `web/` | React + Vite player for the four excerpts, published with GitHub Pages |
-| `amanous_paper/` | LaTeX manuscript (JCMS), kept in its own repository: [amanous_paper](https://github.com/joonhyungbae/amanous_paper) |
+| `amanous_paper/` | LaTeX manuscript (JCMS). Kept in a separate private repository and not part of this one |
 
 ---
 
