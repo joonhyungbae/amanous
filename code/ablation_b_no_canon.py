@@ -29,6 +29,12 @@ from ablation_metrics import (
 )
 
 
+
+# The ablations run on the symbol-only pipeline: passing the canonical sequence as an
+# override gives every section generation 0, so recursion-depth modulation is off in the
+# full and the ablated run alike and the two differ only in the ablated component.
+CANONICAL_SEQUENCE = "ABAABABA"
+
 def config_no_canon(config):
     """Return config with all symbol tempo_ratios set to (1.0, 1.0)."""
     new_configs = {}
@@ -48,14 +54,14 @@ def main():
     # Full pipeline
     config_full = get_canonical_config()
     config_full.seed = seed
-    events_full, seq, _ = compose(config_full, apply_hw_compensation=True)
+    events_full, seq, _ = compose(config_full, lsystem_sequence_override=CANONICAL_SEQUENCE, apply_hw_compensation=True)
     vss_full = vss_components(events_full, time_key="trigger_time")
     rc_full = same_symbol_rc(events_full, seq, config_full, time_key="onset_time")
 
     # Ablated: 1:1 tempo
     config_abl = config_no_canon(get_canonical_config())
     config_abl.seed = seed
-    events_abl, seq_abl, _ = compose(config_abl, apply_hw_compensation=True)
+    events_abl, seq_abl, _ = compose(config_abl, lsystem_sequence_override=CANONICAL_SEQUENCE, apply_hw_compensation=True)
     vss_abl = vss_components(events_abl, time_key="trigger_time")
     rc_abl = same_symbol_rc(events_abl, seq_abl, config_abl, time_key="onset_time")
 

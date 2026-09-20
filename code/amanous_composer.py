@@ -35,6 +35,10 @@ class SymbolConfig:
     velocity_dist: DistributionConfig  # Velocity distribution
     pitch_set: Optional[List[int]] = None  # Allowed pitch classes (0-11)
     mode: str = 'melodic'  # 'melodic' or 'textural'
+    # Optional specified gesture. When set, the section is built from this specification
+    # ('chords', 'trill' or 'arpeggio') instead of being sampled voice by voice. Velocity is
+    # still drawn from velocity_dist, and Layer 4 is applied as for any other section.
+    gesture: Optional[str] = None
 
 @dataclass
 class CompositionConfig:
@@ -97,6 +101,9 @@ def apply_depth_weight_to_config(
     Deeper (later-generated) symbols: denser IOI (higher rate / smaller scale),
     wider pitch range (larger std or range).
     """
+    if base.gesture is not None:
+        return base  # a specified gesture is reproduced exactly, at any depth
+
     depth_frac = generation / max(1, max_generation)  # 0 .. 1
     # Denser IOI: scale down mean/scale so events are closer (higher λ for exponential)
     ioi_factor = 1.0 - k_ioi * depth_frac  # < 1 → denser
@@ -158,6 +165,8 @@ def generate_section_events(
     voices: int
 ) -> List[Dict]:
     """Generate events for a single section using distribution-switching."""
+    if symbol_config.gesture is not None:
+        return generate_gesture_events(symbol_config, start_time)
     events = []
     end_time = start_time + symbol_config.duration
     
@@ -215,6 +224,57 @@ def generate_section_events(
     
     return events
 
+def generate_gesture_events(symbol_config: SymbolConfig, start_time: float) -> List[Dict]:
+    """Build a section from a specified gesture rather than from per-voice sampling.
+
+    The beyond-human demonstration is written against three physical limits, and each is a
+    specification, not a distribution:
+
+      'chords'   a simultaneity of `chord_size` distinct keys every `ioi` seconds
+      'trill'    one note every `ioi` seconds, cycling over `keys` adjacent keys, so that the
+                 aggregate rate can exceed what a single key allows (per-key rate = rate / keys)
+      'arpeggio' one note every `ioi` seconds, in repeated ascending sweeps of low..high
+
+    Parameters come from ioi_dist.params ('value' = ioi) and pitch_dist.params.
+    """
+    ioi = symbol_config.ioi_dist.params['value']
+    pp = symbol_config.pitch_dist.params
+    end_time = start_time + symbol_config.duration
+    events = []
+
+    def add(t, pitch, voice_id):
+        raw_velocity = sample_distribution(symbol_config.velocity_dist)
+        events.append({
+            'onset_time': t, 'pitch': int(pitch),
+            'velocity': int(np.clip(raw_velocity / 8, 1, 127)),
+            'voice_id': voice_id, 'duration': ioi * 0.9,
+            'base_ioi': ioi, 'raw_pitch': float(pitch),
+            'raw_velocity': float(raw_velocity), 'tempo_ratio': 1.0,
+        })
+
+    n_steps = int(round(symbol_config.duration / ioi))
+    if symbol_config.gesture == 'chords':
+        keys = np.arange(pp['low'], pp['high'] + 1)
+        for k in range(n_steps):
+            chord = np.sort(np.random.choice(keys, size=pp['chord_size'], replace=False))
+            for j, pitch in enumerate(chord):
+                add(start_time + k * ioi, pitch, j % 4)
+    elif symbol_config.gesture == 'trill':
+        cycle = [pp['base'] + j for j in range(pp['keys'])]
+        for k in range(n_steps):
+            add(start_time + k * ioi, cycle[k % len(cycle)], k % len(cycle))
+    elif symbol_config.gesture == 'arpeggio':
+        # Repeated ascending sweeps. A key recurs once per sweep, far beyond its reset time,
+        # whereas an up-and-down sweep would re-strike the keys next to each turning point
+        # within 50 ms.
+        sweep = list(range(pp['low'], pp['high'] + 1))
+        for k in range(n_steps):
+            add(start_time + k * ioi, sweep[k % len(sweep)], 0)
+    else:
+        raise ValueError(f"Unknown gesture: {symbol_config.gesture}")
+    return [e for e in events if e['onset_time'] < end_time]
+
+
 # =============================================================================
 # LAYER 4: HARDWARE LATENCY COMPENSATION (Disklavier)
 # =============================================================================
@@ -240,6 +300,30 @@ def apply_latency_compensation(events: List[Dict]) -> List[Dict]:
         })
     
     return compensated
+
+KEY_RESET_S = 0.050  # electromechanical key reset time of the Disklavier action (~50 ms)
+
+
+def apply_key_reset_mask(events: List[Dict], reset_s: float = KEY_RESET_S) -> List[Dict]:
+    """Enforce the per-key reset constraint IOI_key >= reset_s.
+
+    A key that has just been struck cannot be re-struck until its action has reset. For each
+    MIDI pitch, across all voices, events are taken in trigger-time order (the time the
+    solenoid is actually driven) and any trigger that falls within `reset_s` of the last
+    kept trigger on the same key is suppressed. The suppressed event is dropped rather than
+    merged or delayed, so the timing of every surviving event is untouched.
+    """
+    last_trigger = {}
+    kept = []
+    for event in sorted(events, key=lambda e: e['trigger_time']):
+        pitch = event['pitch']
+        previous = last_trigger.get(pitch)
+        if previous is not None and event['trigger_time'] - previous < reset_s - 1e-9:
+            continue
+        last_trigger[pitch] = event['trigger_time']
+        kept.append(event)
+    return kept
+
 
 # =============================================================================
 # MIDI OUTPUT
@@ -307,7 +391,11 @@ def compose(
 
     Optional overrides for ablation experiments:
     - lsystem_sequence_override: if provided, use this string instead of L-system expansion.
-    - apply_hw_compensation: if False, skip Layer 4 (trigger_time = onset_time).
+    - apply_hw_compensation: if False, skip Layer 4 entirely (trigger_time = onset_time,
+      no key-reset mask), so the returned events are the raw Layer 3 stream.
+
+    Layer 4 has two stages. Latency pre-compensation shifts each trigger earlier by L(v), and
+    the key-reset mask then suppresses any trigger that would re-strike a key within 50 ms.
     
     Returns:
         Tuple of (events, lsystem_sequence, summary)
@@ -351,8 +439,12 @@ def compose(
     # Layer 4: Hardware compensation (optional)
     if apply_hw_compensation:
         compensated_events = apply_latency_compensation(all_events)
+        n_before_mask = len(compensated_events)
+        compensated_events = apply_key_reset_mask(compensated_events)
+        n_suppressed = n_before_mask - len(compensated_events)
         compensated_events.sort(key=lambda x: x['trigger_time'])
     else:
+        n_suppressed = 0
         compensated_events = [
             {**e, 'trigger_time': e['onset_time'], 'compensation_ms': 0.0}
             for e in all_events
@@ -366,7 +458,7 @@ def compose(
 Title: {config.title}
 L-System Sequence: {lsystem_sequence}
 Total Sections: {len(lsystem_sequence)}
-Total Events: {len(compensated_events)}
+Total Events: {len(compensated_events)} (Layer 3 produced {len(all_events)}; key-reset mask suppressed {n_suppressed})
 Duration: {total_duration:.2f} seconds
 Voices: {config.voices}
 Seed: {config.seed}
@@ -422,33 +514,33 @@ def get_beyond_human_demo_config() -> CompositionConfig:
     chromatic = list(range(12))
     
     symbol_configs = {
-        # Extreme polyphony section (40-note chords)
+        # Extreme polyphony: a 40-note simultaneity every 500 ms, drawn from the 88 keys
         'P': SymbolConfig(
-            tempo_ratios=(1.0,) * 4,
+            tempo_ratios=(1.0,),
             duration=10.0,
-            ioi_dist=DistributionConfig('constant', {'value': 0.5}),  # 2 chords/s
-            pitch_dist=DistributionConfig('uniform', {'low': 30, 'high': 90}),
+            ioi_dist=DistributionConfig('constant', {'value': 0.5}),
+            pitch_dist=DistributionConfig('constant', {'low': 21, 'high': 108, 'chord_size': 40}),
             velocity_dist=DistributionConfig('gaussian', {'mean': 600, 'std': 100}),
-            pitch_set=chromatic,
-            mode='textural'
+            mode='textural', gesture='chords'
         ),
-        # High-speed repetition (30 Hz alternating)
+        # Repetition: a 30 Hz trill. One key resets in about 50 ms, so it cannot be re-struck
+        # at 30 Hz. Alternating two adjacent keys gives 15 Hz per key (66.7 ms).
         'R': SymbolConfig(
-            tempo_ratios=(30.0, 30.0),  # 30 notes/s per voice
+            tempo_ratios=(1.0,),
             duration=8.0,
-            ioi_dist=DistributionConfig('constant', {'value': 1/30}),  # 30 Hz
-            pitch_dist=DistributionConfig('gaussian', {'mean': 60, 'std': 2}),
+            ioi_dist=DistributionConfig('constant', {'value': 1 / 30}),
+            pitch_dist=DistributionConfig('constant', {'base': 60, 'keys': 2}),
             velocity_dist=DistributionConfig('uniform', {'low': 500, 'high': 800}),
-            mode='melodic'
+            mode='melodic', gesture='trill'
         ),
-        # Wide span arpeggio (6 octaves, 25ms IOI)
+        # Speed and span: a six-octave arpeggio (72 semitones) at a 25 ms IOI
         'S': SymbolConfig(
-            tempo_ratios=(1.0, 1.0),
+            tempo_ratios=(1.0,),
             duration=8.0,
-            ioi_dist=DistributionConfig('constant', {'value': 0.025}),  # 40 notes/s
-            pitch_dist=DistributionConfig('uniform', {'low': 24, 'high': 96}),  # 6 octaves
+            ioi_dist=DistributionConfig('constant', {'value': 0.025}),
+            pitch_dist=DistributionConfig('constant', {'low': 24, 'high': 96}),
             velocity_dist=DistributionConfig('gaussian', {'mean': 700, 'std': 50}),
-            mode='textural'
+            mode='textural', gesture='arpeggio'
         ),
         # Transition/rest
         'T': SymbolConfig(

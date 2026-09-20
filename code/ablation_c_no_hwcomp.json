@@ -4,7 +4,7 @@
     "onset_alignment_sd_ms": 0.0,
     "velocity_timing_r": 0.0,
     "velocity_timing_p": NaN,
-    "ioi_ks_l3_vs_l4": 0.06302757456387169
+    "ioi_ks_l3_vs_l4": 0.06150206978119456
   },
   "ablated": {
     "linear": {
@@ -14,7 +14,7 @@
     },
     "powerlaw_c05": {
       "onset_alignment_sd_ms": 0.20887407862725904,
-      "velocity_timing_r": -0.997825048458459,
+      "velocity_timing_r": -0.9978250484584593,
       "velocity_timing_p": 0.0
     },
     "ioi_ks_l3_vs_l4": 0.0

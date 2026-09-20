@@ -12,7 +12,7 @@ Amanous is a hardware-aware algorithmic composition system that unifies **L-syst
 ## Features
 
 - **Hierarchical distribution-switching** — L-system symbols select distinct distributional regimes (not just parameter tweaks), producing statistically separable sections with large effect sizes.
-- **Hardware abstraction layer (HAL)** — Velocity-dependent latency and key-reset limits are formalized and compensated so that superhuman textures stay within the instrument’s actuable envelope.
+- **Hardware abstraction layer (HAL)** — Layer 4 pre-compensates velocity-dependent latency and then enforces the 50 ms key-reset constraint: any trigger that would re-strike a key before its action has reset is suppressed (`apply_key_reset_mask` in `code/amanous_composer.py`). The four paper excerpts and the ablation control satisfy that constraint. `compositions/east_meets_west.*`, `compositions/xenakis_tribute.*` and `code/multilayer_composition_events.csv` predate the mask, are not part of the paper, and do not.
 - **Operational envelope across density** — Structured and random textures are most separable near 25 notes/s, and single-domain melodic metrics lose that separability over the 40–100 notes/s band. No sharp threshold is claimed. Above the band, distributional content rather than melodic order carries the difference.
 - **Convergence point calculus** — Tempo-canon convergence events drive distribution switches, linking macro temporal structure to micro-level texture.
 
@@ -60,11 +60,12 @@ Everything uses fixed seeds (42 unless stated). Run from `code/`.
 
 | Paper result | Source |
 |---|---|
-| Canonical run (6,591 events), Tables 3–5: densities, MC/RC/PCC, per-layer KS degradation | `python analyze_canonical.py` → `canonical_analysis.json` |
+| Canonical run (6,031 events after Layer 4; Layer 3 produces 6,591 and the key-reset mask suppresses 560), Tables 3–5: densities, MC/RC/PCC, per-layer KS degradation | `python analyze_canonical.py` → `canonical_analysis.json` |
 | Excerpt 3 MIDI and events (the same run) | `python amanous_composer.py --preset canonical --seed 42` |
 | Density sweep, Figure 3: peak separability at 25 notes/s, 40–100 notes/s loss band | `python discriminability_analysis.py` → `discriminability_analysis.json` |
 | Window-sensitivity check, flat single-voice-coherence curve | `perceptual_saturation_wsweep.py`, `density_sweep_breakpoint.py` |
-| Ablations (a)–(c), Table 9 | `python run_all_ablations.py` → `ablation_*.json` |
+| Ablations (a)–(c), Table 9, on the symbol-only pipeline (3,383 events) | `python run_all_ablations.py` → `ablation_*.json` |
+| Beyond-human demonstration, Table 6: specifications realised, key-reset suppressions, between-section KS | `python beyond_human_check.py` → `beyond_human_check.json` |
 | Continuous convergence-point tracking (r = .928) | `python cp_continuous_tracking.py` |
 | L-system redundancy/LZ and recurrence (Tables 7–8, Figure 2) | `supplementary_code/experiments/lsystem_information_analysis.py`, `visualize_recurrence.py` |
 | ε sensitivity (Table 19, Figure 5) | `supplementary_code/experiments/epsilon_sensitivity_cp.py`, `epsilon_sensitivity_full_sweep.py` |
@@ -80,7 +81,7 @@ Some statistics are reported from saved outputs under `supplementary_code/data/c
 | Pitch–velocity coupling | `pitch_velocity_coupling_results.csv` |
 | Constraint-application efficiency | `chained_reactive_constraint_results.csv` |
 
-**Retired material.** An earlier draft claimed a sharp coherence-saturation threshold and a distribution-independence experiment. Both were withdrawn during review and are not results of the paper. `code/breakpoint_bootstrap.py` and `code/recalculate_statistics.py` are tombstones, and `supplementary_code/experiments/density_sweep_null_model_comparison.py` (with its `--distribution-independence` mode and figure), `threshold_analysis.py`, `supplementary_code/rq3_coherence_thresholds/validate_breakpoints.py`, and `supplementary_code/data/csv/psychoacoustic_thresholds.csv` are kept for the record only. `code/canonical_symbol_only_control.*` is the 3,555-event control with recursion-depth modulation disabled, used by the ablations; it is not Excerpt 3.
+**Retired material.** An earlier draft claimed a sharp coherence-saturation threshold and a distribution-independence experiment. Both were withdrawn during review and are not results of the paper. `code/breakpoint_bootstrap.py` and `code/recalculate_statistics.py` are tombstones, and `supplementary_code/experiments/density_sweep_null_model_comparison.py` (with its `--distribution-independence` mode and figure), `threshold_analysis.py`, `supplementary_code/rq3_coherence_thresholds/validate_breakpoints.py`, and `supplementary_code/data/csv/psychoacoustic_thresholds.csv` are kept for the record only. `code/canonical_symbol_only_control.*` is the control with recursion-depth modulation disabled (3,383 events after Layer 4), used by the ablations; it is not Excerpt 3.
 
 ### Paths and configuration
 

@@ -1,0 +1,91 @@
+{
+  "seed": 42,
+  "sequence": "TPRST",
+  "n_events": 1479,
+  "n_events_layer3": 1488,
+  "sections": {
+    "polyphony": {
+      "n_events": 800,
+      "suppressed_by_key_reset": 0,
+      "notes_per_onset": 40.0,
+      "onset_step_ms": [
+        500.0,
+        500.0
+      ],
+      "aggregate_rate_hz": 80.0,
+      "n_keys": 88,
+      "span_semitones": 87,
+      "min_same_key_gap_ms": 493.4310850439889
+    },
+    "repetition": {
+      "n_events": 240,
+      "suppressed_by_key_reset": 0,
+      "notes_per_onset": 1.0,
+      "onset_step_ms": [
+        33.33333299999808,
+        33.33333400000171
+      ],
+      "aggregate_rate_hz": 30.0,
+      "n_keys": 2,
+      "span_semitones": 1,
+      "min_same_key_gap_ms": 60.8797653958959
+    },
+    "speed_span": {
+      "n_events": 320,
+      "suppressed_by_key_reset": 0,
+      "notes_per_onset": 1.0,
+      "onset_step_ms": [
+        24.99999999999858,
+        25.00000000000213
+      ],
+      "aggregate_rate_hz": 40.0,
+      "n_keys": 73,
+      "span_semitones": 72,
+      "min_same_key_gap_ms": 1820.933528836754
+    }
+  },
+  "between_section_ks": {
+    "polyphony_vs_repetition": {
+      "ioi": {
+        "D": 0.9762202753441802,
+        "p": 1.0957267578187911e-213
+      },
+      "pitch": {
+        "D": 0.53125,
+        "p": 1.8663214967788277e-48
+      },
+      "velocity": {
+        "D": 0.2025,
+        "p": 4.2331205884182015e-07
+      }
+    },
+    "polyphony_vs_speed_span": {
+      "ioi": {
+        "D": 0.9762202753441802,
+        "p": 2.261232466129529e-258
+      },
+      "pitch": {
+        "D": 0.1375,
+        "p": 0.0003209296344884745
+      },
+      "velocity": {
+        "D": 0.5275,
+        "p": 7.793312070244486e-59
+      }
+    },
+    "repetition_vs_speed_span": {
+      "ioi": {
+        "D": 0.9832767146286119,
+        "p": 1.0467339170016179e-153
+      },
+      "pitch": {
+        "D": 0.5375,
+        "p": 8.186245278398314e-37
+      },
+      "velocity": {
+        "D": 0.3385416666666667,
+        "p": 2.0463595056548095e-14
+      }
+    }
+  }
+}

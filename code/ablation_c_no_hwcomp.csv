@@ -1,4 +1,4 @@
 condition,model,onset_alignment_sd_ms,velocity_timing_r,ioi_ks_l3_vs_l4
-full,linear,0.0,0.0,0.06302757456387169
+full,linear,0.0,0.0,0.06150206978119456
 ablated,linear,0.328504306141814,-1.0,0.0
-ablated,powerlaw_c05,0.20887407862725904,-0.997825048458459,0.0
+ablated,powerlaw_c05,0.20887407862725904,-0.9978250484584593,0.0

@@ -27,6 +27,12 @@ from ablation_metrics import (
 )
 
 
+
+# The ablations run on the symbol-only pipeline: passing the canonical sequence as an
+# override gives every section generation 0, so recursion-depth modulation is off in the
+# full and the ablated run alike and the two differ only in the ablated component.
+CANONICAL_SEQUENCE = "ABAABABA"
+
 def random_sequence_5A_3B(seed: int) -> str:
     """Shuffle ABAABABA (5 A, 3 B) with given seed."""
     rng = np.random.default_rng(seed)
@@ -37,7 +43,7 @@ def random_sequence_5A_3B(seed: int) -> str:
 
 def run_full_pipeline_metrics(config) -> dict:
     """One run with canonical L-system ABAABABA; return metrics."""
-    events, sequence, _ = compose(config, lsystem_sequence_override=None, apply_hw_compensation=True)
+    events, sequence, _ = compose(config, lsystem_sequence_override=CANONICAL_SEQUENCE, apply_hw_compensation=True)
     return {
         "same_symbol_mc": same_symbol_mc(events, sequence, config, time_key="onset_time"),
         "same_symbol_rc": same_symbol_rc(events, sequence, config, time_key="onset_time"),

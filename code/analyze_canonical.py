@@ -202,25 +202,34 @@ def intended_velocity_sample(sc, n, rng):
     return np.clip(raw / 8.0, 1, 127).astype(int).astype(float)
 
 
-def degradation(events, sections, voices, rng, n_ref=20000):
+def degradation(raw_events, events, sections, voices, rng, n_ref=20000):
     """
     KS distance between the intended distribution and the realized one, measured
     after each layer. Computed per section and per voice, because Layer 2's
     depth weighting gives each section its own intended distribution, then averaged
     within a symbol.
+
+    `raw_events` is the Layer 3 stream before Layer 4 touches it, and `events` is the
+    final output. Layers 2 and 3 are measured on the former, Layer 4 on the latter, so
+    that what Layer 4 does (latency pre-compensation, then the key-reset mask, which
+    removes events) is charged to Layer 4 and to nothing upstream of it.
     """
-    acc = {(p, s): {'L2': [], 'L3': [], 'L4': []}
+    acc = {(p, s): {'L2': [], 'L3': [], 'L4c': [], 'L4': []}
            for p in ('IOI', 'Pitch', 'Velocity') for s in ('A', 'B')}
 
     for i, sec in enumerate(sections):
         sc, symbol = sec['config'], sec['symbol']
-        ev = [e for e in events if section_of(sections, e['onset_time']) == i]
-        by_voice = {}
+        ev = [e for e in raw_events if section_of(sections, e['onset_time']) == i]
+        ev_out = [e for e in events if section_of(sections, e['onset_time']) == i]
+        by_voice, by_voice_out = {}, {}
         for e in ev:
             by_voice.setdefault(e['voice_id'], []).append(e)
+        for e in ev_out:
+            by_voice_out.setdefault(e['voice_id'], []).append(e)
 
         for vid, ve in by_voice.items():
             ve.sort(key=lambda e: e['onset_time'])
+            vo = by_voice_out.get(vid, [])
             ratio = ve[0]['tempo_ratio']
 
             # IOI. Layer 2 is the sampled base interval, Layer 3 adds tempo scaling,
@@ -232,18 +241,28 @@ def degradation(events, sections, voices, rng, n_ref=20000):
             ref_scaled = intended_ioi_sample(sc, ratio, n_ref, rng)
             acc[('IOI', symbol)]['L3'].append(
                 ks_or_zero(np.diff([e['onset_time'] for e in ve]), ref_scaled))
+            # Layer 4, first stage only: latency pre-compensation on the full stream.
+            comp = np.sort([e['onset_time'] - ac.latency_linear(e['velocity']) / 1000.0 for e in ve])
+            acc[('IOI', symbol)]['L4c'].append(ks_or_zero(np.diff(comp), ref_scaled))
+            # Layer 4 complete: compensation followed by the key-reset mask.
             acc[('IOI', symbol)]['L4'].append(
-                ks_or_zero(np.diff(np.sort([e['trigger_time'] for e in ve])), ref_scaled))
+                ks_or_zero(np.diff(np.sort([e['trigger_time'] for e in vo])), ref_scaled))
 
-            # Pitch and velocity are fixed at Layer 2 and untouched downstream, so
-            # their realized distribution is the same after Layers 3 and 4.
-            kp = ks_or_zero(np.array([e['pitch'] for e in ve], float),
-                            intended_pitch_sample(sc, vid, voices, n_ref, rng))
-            kv = ks_or_zero(np.array([e['velocity'] for e in ve], float),
-                            intended_velocity_sample(sc, n_ref, rng))
-            for layer in ('L2', 'L3', 'L4'):
+            # Pitch and velocity are fixed at Layer 2 and are not rewritten downstream.
+            # Layer 3 leaves them as they are. Layer 4 does not change any value either,
+            # but its key-reset mask removes events, so the surviving sample is measured
+            # separately.
+            ref_p = intended_pitch_sample(sc, vid, voices, n_ref, rng)
+            ref_v = intended_velocity_sample(sc, n_ref, rng)
+            kp = ks_or_zero(np.array([e['pitch'] for e in ve], float), ref_p)
+            kv = ks_or_zero(np.array([e['velocity'] for e in ve], float), ref_v)
+            for layer in ('L2', 'L3', 'L4c'):
                 acc[('Pitch', symbol)][layer].append(kp)
                 acc[('Velocity', symbol)][layer].append(kv)
+            acc[('Pitch', symbol)]['L4'].append(
+                ks_or_zero(np.array([e['pitch'] for e in vo], float), ref_p))
+            acc[('Velocity', symbol)]['L4'].append(
+                ks_or_zero(np.array([e['velocity'] for e in vo], float), ref_v))
 
     rows = []
     for param in ('IOI', 'Pitch', 'Velocity'):
@@ -253,6 +272,7 @@ def degradation(events, sections, voices, rng, n_ref=20000):
                 'parameter': param, 'symbol': symbol,
                 'after_L2': float(np.mean(a['L2'])),
                 'after_L3': float(np.mean(a['L3'])),
+                'after_L4_compensation_only': float(np.mean(a['L4c'])),
                 'after_L4': float(np.mean(a['L4'])),
             })
     return rows
@@ -264,6 +284,8 @@ def main(seed):
     config = ac.get_canonical_config()
     config.seed = seed
     events, sequence, _ = ac.compose(config)
+    # The same seed regenerates the identical Layer 3 stream with Layer 4 switched off.
+    raw_events, _, _ = ac.compose(config, apply_hw_compensation=False)
     sections = build_sections(config)
     rng = np.random.default_rng(seed)
 
@@ -356,6 +378,8 @@ def main(seed):
         'seed': seed,
         'lsystem_sequence': sequence,
         'n_events_total': len(events),
+        'n_events_layer3': len(raw_events),
+        'n_suppressed_by_key_reset': len(raw_events) - len(events),
         'duration_s': max(e['onset_time'] + e['duration'] for e in events),
         'symbols': summary,
         'density_bifurcation': {
@@ -366,7 +390,7 @@ def main(seed):
         'registral_separation_semitones': registral_separation,
         'coherence': coherence,
         'pcc_by_symbol': pcc,
-        'degradation': degradation(events, sections, config.voices, rng),
+        'degradation': degradation(raw_events, events, sections, config.voices, rng),
         'per_section': [{k: v for k, v in s.items() if k != 'events'} for s in per_section],
     }
 

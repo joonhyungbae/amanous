@@ -23,6 +23,12 @@ from ablation_metrics import (
 )
 
 
+
+# The ablations run on the symbol-only pipeline: passing the canonical sequence as an
+# override gives every section generation 0, so recursion-depth modulation is off in the
+# full and the ablated run alike and the two differ only in the ablated component.
+CANONICAL_SEQUENCE = "ABAABABA"
+
 def main():
     parser = argparse.ArgumentParser(description="Ablation (c): No Hardware Compensation")
     parser.add_argument("--out-dir", type=str, default=CODE_DIR)
@@ -37,13 +43,13 @@ def main():
     # Layer 4 necessity (systematic bias without compensation), not compensation precision.
 
     # Full pipeline (with compensation)
-    events_full, seq, _ = compose(config, apply_hw_compensation=True)
+    events_full, seq, _ = compose(config, lsystem_sequence_override=CANONICAL_SEQUENCE, apply_hw_compensation=True)
     align_sd_full = onset_alignment_sd_ms(events_full, compensated=True)
     r_full, p_full = velocity_timing_correlation(events_full, compensated=True)
     ks_full = ioi_ks_l3_vs_l4(events_full)
 
     # Ablated (no compensation): trigger_time = onset_time
-    events_abl, _, _ = compose(config, apply_hw_compensation=False)
+    events_abl, _, _ = compose(config, lsystem_sequence_override=CANONICAL_SEQUENCE, apply_hw_compensation=False)
     # Linear latency model (matches composer)
     align_sd_abl_linear = onset_alignment_sd_ms(events_abl, compensated=False, latency_fn=None)
     r_abl_linear, p_abl_linear = velocity_timing_correlation(events_abl, compensated=False, latency_fn=None)

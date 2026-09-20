@@ -18,7 +18,7 @@ export const TRACKS = {
     style: 'L-system & 3:4 tempo canon',
     description: 'L-system macro-form with deterministic (A) and textural (B) sections; 3:4 tempo canon (paper Excerpt 3). This is the run analysed in the paper (seed 42).',
     duration: '74s',
-    highlight: '6,591 events; C major vs chromatic sections',
+    highlight: '6,031 events; C major vs chromatic sections',
   },
   beyond_human_demo: {
     title: 'Beyond-Human-Density',
