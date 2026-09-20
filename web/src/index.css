@@ -1,5 +1,5 @@
 :root {
-  --font-sans: 'DM Sans', system-ui, sans-serif;
+  --font-sans: 'DM Sans Variable', 'DM Sans', system-ui, sans-serif;
   --font-serif: 'Instrument Serif', Georgia, serif;
   --bg: #f6f4ef;
   --surface: #ffffff;
@@ -10,6 +10,11 @@
   --accent-strong: #6f570c;
   --on-accent: #ffffff;
   --roll: #fbfaf6;
+  --ink: #24221c;
+  --on-ink: #ffffff;
+  --tint: #ece9f5;
+  --tint-border: #b9b0dd;
+  --tint-text: #4a3f8a;
   --error-bg: #fbeaea;
   --error-border: #d9a3a3;
   --radius: 14px;
@@ -27,6 +32,11 @@
     --accent-strong: #e6c453;
     --on-accent: #17140a;
     --roll: #121211;
+    --ink: #ece8de;
+    --on-ink: #17150f;
+    --tint: #1a1830;
+    --tint-border: #4a4480;
+    --tint-text: #b9b0f0;
     --error-bg: #2a1616;
     --error-border: #7a3a3a;
     color-scheme: dark;

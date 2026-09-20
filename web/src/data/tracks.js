@@ -15,6 +15,7 @@ export const GROUPS = [
   {
     id: 'after',
     title: 'After the paper',
+    badge: 'Not in the article',
     blurb:
       'Later work on the same four layers, not part of the published article. The note-by-note sampling of the original generator is replaced by a motif that every voice states at its own tempo, with harmony, rests, dynamic shape and pedal.',
     tracks: ['v2_study_1', 'v2_study_2'],
@@ -77,6 +78,21 @@ export const TRACKS = {
     symbols: { A: 'Motivic canon', B: 'Cloud' },
   },
 }
+
+export const LAYERS = [
+  { name: 'Grammar', text: 'An L-system writes the order of the sections, such as ABAABABA.' },
+  { name: 'Regime', text: 'Each symbol switches to its own family of probability distributions.' },
+  { name: 'Events', text: 'Notes are drawn, and tempo canons set the voices at different speeds.' },
+  { name: 'Hardware', text: 'Timing is corrected for the mechanism, and no key is re-struck within 50 ms.' },
+]
+
+export const BIBTEX = `@article{bae_amanous,
+  author  = {Bae, Joonhyung},
+  title   = {Amanous: Distribution-Switching for Superhuman Piano Density on Disklavier},
+  journal = {Journal of Creative Music Systems},
+  note    = {In press},
+  url     = {https://github.com/joonhyungbae/amanous}
+}`
 
 export const LINKS = {
   code: 'https://github.com/joonhyungbae/amanous',

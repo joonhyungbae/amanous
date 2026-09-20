@@ -3,7 +3,8 @@
 Build the player's assets from the repository's compositions.
 
 For every track in the player this writes
-  web/public/data/<id>.json   notes as [onset s, MIDI key, velocity] and the section layout
+  web/public/data/<id>.json   notes as [onset s, MIDI key, velocity, duration s, voice index],
+                              the voice names and the section layout
   web/public/audio/<id>.mp3   from the WAV render in audio_hq/
   web/public/midi/<id>.mid    a copy of the MIDI file, offered for download
 
@@ -52,6 +53,26 @@ TRACKS = {
 }
 
 
+def voice_map(tid, ids):
+    """Map raw voice ids to a small colour index and a readable name."""
+    if not tid.startswith('v2_'):
+        return {v: i for i, v in enumerate(ids)}, [f'Voice {i + 1}' for i in range(len(ids))]
+    # v2: 0..n-1 canon voices, 100+v their octave doublings, 10..13 cloud walkers, 20 convergence chords
+    canon = [v for v in ids if v < 10]
+    names = [f'Canon voice {i + 1}' for i in range(len(canon))] + ['Cloud', 'Convergence chord']
+    out = {}
+    for v in ids:
+        if v < 10:
+            out[v] = canon.index(v)
+        elif v >= 100:
+            out[v] = canon.index(v - 100)
+        elif v == 20:
+            out[v] = len(canon) + 1
+        else:
+            out[v] = len(canon)
+    return out, names
+
+
 def main():
     pub = os.path.join(ROOT, 'web', 'public')
     for sub in ('data', 'audio', 'midi'):
@@ -59,7 +80,9 @@ def main():
     for tid, (stem, wav, layout) in TRACKS.items():
         with open(os.path.join(ROOT, stem + '_events.csv')) as f:
             rows = list(csv.DictReader(f))
-        notes = sorted([round(float(r['onset_time']), 3), int(float(r['pitch'])), int(float(r['velocity']))]
+        voice_of, voice_names = voice_map(tid, sorted({int(float(r['voice_id'])) for r in rows}))
+        notes = sorted([round(float(r['onset_time']), 3), int(float(r['pitch'])), int(float(r['velocity'])),
+                        round(float(r['duration']), 3), voice_of[int(float(r['voice_id']))]]
                        for r in rows)
         mp3 = os.path.join(pub, 'audio', tid + '.mp3')
         subprocess.run(['ffmpeg', '-y', '-v', 'error', '-i', os.path.join(ROOT, wav),
@@ -69,6 +92,7 @@ def main():
         shutil.copy(os.path.join(ROOT, stem + '.mid'), os.path.join(pub, 'midi', tid + '.mid'))
         sections = [{**s, 'start': round(s['start'], 3), 'end': round(s['end'], 3)} for s in layout()]
         data = {'duration': round(dur, 3), 'music_end': sections[-1]['end'], 'n_notes': len(notes),
+                'voices': voice_names,
                 'key_range': [min(n[1] for n in notes), max(n[1] for n in notes)],
                 'sections': sections, 'notes': notes}
         with open(os.path.join(pub, 'data', tid + '.json'), 'w') as f:
