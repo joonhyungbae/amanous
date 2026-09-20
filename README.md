@@ -105,7 +105,7 @@ All filesystem locations are resolved in one place, `code/config.py`, relative t
 | `AMANOUS_AUDIO_DIR` | `audio_hq/` | High-quality WAV renders |
 | `AMANOUS_SOUNDFONT_DIR` | `soundfonts/` | SoundFont search directory |
 | `AMANOUS_SOUNDFONT` | (unset) | Explicit `.sf2` file, wins over the search list |
-| `AMANOUS_OUTPUT_DIR` | `web/public/audio/` | Rendered audio for the web app |
+| `AMANOUS_OUTPUT_DIR` | `web/public/audio/` | Default output directory of `midi_to_audio.py` |
 | `AMANOUS_CODE_EXTRACTED` | `code_extracted/` | Legacy; read only by a deprecated script |
 
 ```bash
@@ -134,12 +134,15 @@ Optional: `python download_soundfont.py --download-salamander` attempts an autom
 
 ### Web (listen to excerpts)
 
+The player at [joonhyungbae.github.io/amanous](https://joonhyungbae.github.io/amanous/) shows a piano roll of every piece with its section layout, and plays MP3 renders.
+
 ```bash
-./dev.sh      # local dev server at http://localhost:5173
-./deploy.sh   # build and publish to the gh-pages branch (GitHub Pages)
+python web/scripts/build_tracks.py   # audio_hq/*.wav -> web/public/audio/*.mp3, plus notes JSON and MIDI copies
+./dev.sh                             # local dev server at http://localhost:5173
+./deploy.sh                          # build and publish to the gh-pages branch (GitHub Pages)
 ```
 
-Place WAV files in `web/public/audio/` (e.g. `canonical_abaababa.wav`, `convergence_point.wav`) so the player can load them. Track list and descriptions are in `web/src/data/tracks.js`.
+`build_tracks.py` reads the event lists and section layouts straight from the composer presets, so the rolls always match the released MIDI. Titles and descriptions are in `web/src/data/tracks.js`.
 
 
 ## License

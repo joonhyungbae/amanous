@@ -344,6 +344,7 @@ def compose(config: PieceConfig) -> Tuple[List[Dict], List[Tuple[float, int]], s
              f"Events: {len(events)} (Layer 3 produced {n_layer3}; key-reset moved {moved}, suppressed {dropped})"]
     for symbol, birth, a, b, n in layout:
         lines.append(f"  {symbol} depth {birth}  {a:6.1f}-{b:6.1f} s  {n:5d} events  {n / (b - a):6.1f} notes/s")
+    compose.last_layout = layout          # (symbol, depth, start, end, n_events) per section
     return events, pedal, "\n".join(lines)
 
 

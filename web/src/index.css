@@ -1,55 +1,56 @@
 :root {
   --font-sans: 'DM Sans', system-ui, sans-serif;
   --font-serif: 'Instrument Serif', Georgia, serif;
-  --color-bg: #0f0f0f;
-  --color-surface: #1a1a1a;
-  --color-border: #2a2a2a;
-  --color-text: #e8e8e8;
-  --color-text-muted: #888;
-  --color-accent: #c9a227;
-  --color-accent-hover: #ddb83a;
-  --color-error-bg: rgba(180, 60, 60, 0.12);
-  --color-error-border: #b44;
-  --radius: 12px;
-  --radius-sm: 8px;
+  --bg: #f6f4ef;
+  --surface: #ffffff;
+  --border: #e4e0d6;
+  --text: #1d1b16;
+  --muted: #625e54;
+  --accent: #8a6d12;
+  --accent-strong: #6f570c;
+  --on-accent: #ffffff;
+  --roll: #fbfaf6;
+  --error-bg: #fbeaea;
+  --error-border: #d9a3a3;
+  --radius: 14px;
+  color-scheme: light;
 }
 
-* {
-  box-sizing: border-box;
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f0f0e;
+    --surface: #181816;
+    --border: #2b2a26;
+    --text: #ece8de;
+    --muted: #a09b8e;
+    --accent: #d4af37;
+    --accent-strong: #e6c453;
+    --on-accent: #17140a;
+    --roll: #121211;
+    --error-bg: #2a1616;
+    --error-border: #7a3a3a;
+    color-scheme: dark;
+  }
 }
+
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
   min-width: 320px;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
   font-family: var(--font-sans);
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.6;
-  color: var(--color-text);
-  background: var(--color-bg);
+  color: var(--text);
+  background: var(--bg);
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-#root {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
+a { color: var(--accent); text-underline-offset: 3px; }
+a:hover { color: var(--accent-strong); }
 
-
-@media (prefers-color-scheme: light) {
-  :root {
-    --color-bg: #f5f5f4;
-    --color-surface: #fff;
-    --color-border: #e5e5e4;
-    --color-text: #1c1c1b;
-    --color-text-muted: #575756;
-    --color-accent: #a68b1e;
-    --color-accent-hover: #8a7318;
-    --color-error-bg: rgba(180, 60, 60, 0.08);
-    --color-error-border: #c66;
-  }
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 6px;
 }
